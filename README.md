@@ -9,26 +9,35 @@ The platform consists of three core components:
 2. **Airflow Orchestration**: Batch scheduling and workflow monitoring, running inside a dedicated Docker environment.
 3. **Flask Web Dashboard**: A modern, dark-themed UI providing real-time data exploration, dynamic column detection, interactive charts, data quality scorecards, anomaly reports, and LLM-powered business insights via Google Gemini.
 
-## Features
+## Features & Advanced Analytics
+
+The platform has recently been upgraded to feature highly advanced data transformations:
 
 - **Automated Data Cleaning**: Drops duplicates, fills missing values, and standardizes numerical types.
-- **Advanced Feature Engineering**: Automatically extracts:
-  - Temporal details (Day of week, Week number)
-  - Funnel metrics (ROAS, CPA, CPC, CPM)
-  - Spend Efficiency Tiers & Engagement Scores
-- **Anomaly & Bot Detection**: Flags rows with CTR > 100%, z-score anomalies, or suspicious bot traffic profiles.
-- **AI Business Insights**: Connects to Gemini 2.0 Flash for automated marketing performance reports.
-- **Production-Ready Architecture**: PostgreSQL backend, password-secured sessions, and background thread processing for heavy uploads.
+- **Dynamic Schema Mapping**: Identifies generic columns (Spend, Impressions, Clicks, Revenue) across arbitrary datasets.
+- **Advanced Feature Engineering**: 
+  - **Funnel Metrics**: Computes ROAS (Return on Ad Spend), CPA (Cost Per Acquisition), CPC, CPM, and Profit Margins.
+  - **Temporal Analysis**: Extracts day of week and calculates 3-day and 7-day Moving Averages for critical metrics.
+  - **Scoring & Tiers**: Calculates a weighted Engagement Score and categorizes campaigns into Spend Efficiency Tiers (Poor to Excellent).
+- **Comprehensive Anomaly & Bot Detection**:
+  - Flags rows with CTR > 100%.
+  - Detects statistical outliers using sophisticated Z-score thresholds.
+  - Identifies suspicious bot traffic profiles (e.g., high clicks/impressions with zero conversions or revenue).
+- **AI Business Insights**: Connects to the Gemini 2.0 Flash API to provide an automated, plain-text executive summary of marketing performance.
 
 ## User Interface
 
 ### Landing Page
-A dynamic entry point that welcomes users to the analytics suite.
-![ReFyn Landing Page](docs/assets/landing.png)
+A dynamic, beautifully crafted entry point that welcomes users to the analytics suite.
+
+![ReFyn Landing Page Top](docs/assets/landing_1.png)
+![ReFyn Landing Page Bottom](docs/assets/landing_2.png)
 
 ### Advanced Analytics Dashboard
 A real-time metrics dashboard featuring multi-column layouts, animated KPI counters, area/grouped bar charts, and an anomaly review center.
-![ReFyn Dashboard](docs/assets/dashboard.png)
+
+![ReFyn Dashboard Overall](docs/assets/dashboard.png)
+![ReFyn Dashboard Charts](docs/assets/dashboard_2.png)
 
 ## Getting Started
 
@@ -42,8 +51,8 @@ A real-time metrics dashboard featuring multi-column layouts, animated KPI count
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/nagratana/refyn-automated-ETL.git
-   cd refyn-automated-ETL
+   git clone https://github.com/nagratana/ReFyn-Automated-ETL-pipeline.git
+   cd ReFyn-Automated-ETL-pipeline
    ```
 
 2. **Launch the Infrastructure (Airflow & Postgres)**
@@ -72,5 +81,5 @@ A real-time metrics dashboard featuring multi-column layouts, animated KPI count
 
 1. **Upload Data**: Use the dashboard entry page to drag-and-drop your raw marketing CSV. The backend offloads the ETL to a background job.
 2. **Review ETL Report**: Instantly compare rows, columns, nulls, and footprints before and after processing.
-3. **Explore Dashboards**: Observe moving averages, cumulative revenue trends, and conversion funnels.
+3. **Explore Dashboards**: Observe moving averages, cumulative revenue trends, conversion funnels, and efficiency tiers.
 4. **Identify Flaws**: Use the Anomaly Detection tab to isolate rows mimicking bot interactions or statistical outliers.
