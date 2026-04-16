@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform | Data Intelligence</title>
+    <!-- Use Inter variable font for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Minimalist Light Palette */
+            --bg-page: #f9fafb;
+            --bg-surface: #ffffff;
+            --bg-subtle: #f3f4f6;
+            
+            --text-heading: #0f172a;
+            --text-body: #475569;
+            --text-muted: #94a3b8;
+            
+            --border-light: rgba(0,0,0,0.06);
+            --border-focus: #0f172a;
+            
+            /* Accent for "data" highlight */
+            --accent-gradient: linear-gradient(135deg, #0284c7, #2dd4bf);
+            
+            /* Shadows for depth */
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
+            --shadow-md: 0 16px 32px rgba(0,0,0,0.04);
+            --shadow-float: 0 32px 64px -16px rgba(0,0,0,0.08), 0 0 0 1px var(--border-light);
+            
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ═════ MINIMAL NAVBAR ═════ */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 6vw; /* Slim, lightweight SaaS header */
+            z-index: 100;
+            background: rgba(249, 250, 251, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .nav-logo {
+            font-size: 1.45rem; font-weight: 900; color: var(--text-heading); /* Scaled down typography slightly */
+            text-decoration: none; letter-spacing: -0.04em;
+            display: flex; align-items: baseline; gap: 10px; /* Clean structured 10px gap */
+        }
+        
+        .nav-logo svg { width: 20px; height: 20px; }
+
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-body); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-heading); }
+        
+        .btn-nav-primary {
+            background: var(--text-heading); color: white !important;
+            padding: 10px 20px; border-radius: 100px;
+            transition: transform 0.2s, box-shadow 0.2s !important;
+        }
+        .btn-nav-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
+        }
+
+        /* ═════ HERO SECTION — STICKY (Acctual pattern) ═════ */
+        .hero-scroll-track {
+            /* Tightened scroll track: 100vh hero + 15vh animation depth = 115vh total.
+               Eliminates dead scroll and initiates the next section much faster. */
+            height: 115vh;
+            width: 100%;
+            position: relative;
+        }
+
+        .hero-sticky-wrapper {
+            /* Sticky container: stays pinned inside the track */
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 10;
+            background: var(--bg-page);
+        }
+
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+            padding-top: 18vh;
+        }
+
+        .hero-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, #ffffff 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: clamp(3.5rem, 6vw, 5rem);
+            font-weight: 800; color: var(--text-heading);
+            letter-spacing: -0.05em; line-height: 1.05;
+            max-width: 800px; margin-bottom: 24px;
+            opacity: 0; animation: fadeUp 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .hero h1 .highlight {
+            position: relative; display: inline-block;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+            color: var(--text-body);
+            max-width: 560px; margin: 0 auto 50px;
+            opacity: 0; animation: fadeUp 1s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═════ ANCHORED EDGE ELEMENTS (Acctual exact pattern) ═════ */
+        .edge-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5;
+            overflow: hidden;
+        }
+
+        .edge-el {
+            position: absolute;
+            background: var(--bg-surface);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            display: flex; align-items: center; gap: 12px;
+            /* Fully visible & static from load — JS drives exit only */
+            opacity: 1;
+            will-change: transform, opacity;
+            /* CSS transition for silky smooth interpolation between JS updates */
+            transition: opacity 0.08s linear, transform 0.08s linear, filter 0.08s linear;
+        }
+
+        /* Positioning - Layout ensuring central Safe Zone width ~55-60% */
+        /* Left Side Elements — evenly spaced, top to bottom */
+        .e-tl { display: none; }                                                   /* 2.4m Rows — removed */
+        .e-tl2 { top: 18%; left: 3%; transform: rotate(1.5deg); z-index: 1; }    /* Revenue Trend (shifted up to fill gap) */
+        .e-ml2 { top: 48%; left: 15%; transform: rotate(-1deg); z-index: 2; }    /* CTR drop — bridge element, pushed right */
+        .e-bl2 { display: none; }      /* +18% Growth — moved to center showcase */
+        .e-bl { display: none; }       /* 100% Clean — moved to center showcase */
+
+        /* Right Side Elements — tighter vertical grouping */
+        .e-tr { top: 12%; right: 2%; transform: rotate(2deg); z-index: 1; }       /* Campaign Performance */
+        .e-mr2 { top: 42%; right: 5%; transform: rotate(-1.5deg); z-index: 2; }  /* Anomaly detected */
+        .e-tr3 { display: none; }      /* Conversion Rate — moved to center showcase */
+        .e-br2 { display: none; }      /* ROI Trending — moved to center showcase */
+        
+        .e-ml { display: none; } /* Automated Join removed */
+        .e-tr2 { display: none; }
+        .e-mr { display: none; }
+
+        /* Component Details within Cards */
+        .fc-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--bg-subtle); display: flex; align-items: center; justify-content: center;
+        }
+        .fc-icon svg { width: 16px; height: 16px; color: var(--text-heading); }
+        
+        .fc-text h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-heading); line-height: 1.2; }
+        .fc-text p { font-size: 0.75rem; color: var(--text-muted); }
+        
+        .mini-graph { display: flex; align-items: flex-end; gap: 4px; height: 24px; margin-top: 4px; }
+        .mg-bar { width: 6px; background: #e2e8f0; border-radius: 2px; }
+        .mg-bar:nth-child(1) { height: 40%;} .mg-bar:nth-child(2) { height: 70%;} .mg-bar:nth-child(3) { height: 50%;} .mg-bar:nth-child(4) { height: 100%; background: #0ea5e9; }
+        
+        .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
+
+        /* ═════ AUTH CARD CENTRPIECE ═════ */
+        .auth-wrapper {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 400px; margin: 0 auto;
+            opacity: 0; animation: fadeUp 1s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .auth-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-float);
+            padding: 32px;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .auth-card:hover { transform: translateY(-4px); }
+
+        .auth-tabs {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            background: var(--bg-subtle); padding: 4px; border-radius: var(--radius-sm);
+        }
+
+        .tab-btn {
+            flex: 1; padding: 10px 0; border: none; background: transparent;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+            border-radius: calc(var(--radius-sm) - 2px); cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--bg-surface); color: var(--text-heading);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .auth-form { display: none; flex-direction: column; gap: 16px; animation: formFade 0.3s ease; }
+        .auth-form.active { display: flex; }
+        @keyframes formFade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-group label {
+            display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-heading);
+            margin-bottom: 8px; text-align: left;
+        }
+
+        .clean-input {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--border-light);
+            background: var(--bg-surface); border-radius: var(--radius-sm);
+            font-size: 0.95rem; font-family: inherit; color: var(--text-heading);
+            transition: all 0.2s; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .clean-input::placeholder { color: #cbd5e1; }
+        .clean-input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+        }
+
+        .btn-submit {
+            width: 100%; padding: 14px; margin-top: 8px;
+            background: var(--text-heading); color: white;
+            border: none; border-radius: var(--radius-sm);
+            font-weight: 600; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+            background: #1e293b;
+        }
+
+        .error-badge {
+            background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+            padding: 12px; border-radius: var(--radius-sm); font-size: 0.85rem;
+            margin-bottom: 20px; text-align: left;
+        }
+
+        /* ═════ SNAKE-SCROLL WORKFLOW ═════ */
+        .snake-workflow {
+            position: relative;
+            padding: 30px 0; /* Reduced padding for seamless section transition */
+            width: 100%;
+            overflow-x: hidden;
+            background: var(--bg-page);
+        }
+        
+        .workflow-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 100px;
+            padding: 0 5vw;
+        }
+        .workflow-header h2 { font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 800; color: var(--text-heading); letter-spacing: -0.04em; margin-bottom: 20px; }
+        .workflow-header p { font-size: 1.15rem; color: var(--text-body); max-width: 500px; margin: 0 auto; line-height: 1.5; }
+
+        .snake-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            min-height: 160vh; /* Reduced from 250vh: Eliminates dead scroll for faster storytelling */
+            display: flex;
+            flex-direction: column;
+            gap: 12vh; /* Reduced from 20vh: Snake path curves more tightly for continuous motion */
+        }
+
+        /* SVG Snake Path */
+        .snake-svg-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .snake-path {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .snake-path-progress {
+            fill: none;
+            stroke: #0284c7; /* Brand Blue */
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 10000;
+            stroke-dashoffset: 10000;
+            filter: drop-shadow(0 0 4px rgba(2,132,199,0.2));
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        /* Step Items */
+        .step-item {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            justify-content: flex-start; /* Default left */
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-item:nth-child(even) { justify-content: flex-end; }
+        
+        .step-item.sr-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            max-width: 380px;
+            width: 90%;
+            box-shadow: var(--shadow-md), inset 0 0 0 1px var(--border-light);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: transform 0.3s ease;
+        }
+        .step-card:hover { transform: translateY(-5px); }
+
+        .step-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        }
+        
+        .step-title { font-weight: 800; color: var(--text-heading); font-size: 1.25rem; letter-spacing: -0.02em; }
+        .step-desc { color: var(--text-body); font-size: 1rem; line-height: 1.5; }
+
+        @media (max-width: 800px) {
+            .snake-container { min-height: auto; gap: 60px; padding: 0 20px; }
+            .step-item { justify-content: center !important; }
+            .snake-svg-layer { display: none; }
+        }
+
+        /* ═════ GRAPH CARD EDGE ELEMENT (Light SaaS theme) ═════ */
+        .graph-card {
+            /* Override the base edge-el padding for a slightly wider card */
+            padding: 18px 20px !important;
+            width: 220px;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch !important;
+        }
+        .graph-card .card-content {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .graph-card .info p {
+            font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;
+        }
+        .graph-card .info h2 {
+            font-size: 1.4rem; font-weight: 800; color: var(--text-heading);
+            letter-spacing: -0.03em; margin: 0;
+        }
+        .graph-card .graph-lines { width: 100%; }
+        .graph-card .graph-lines svg {
+            width: 100%; height: 64px; display: block;
+            overflow: visible;
+        }
+        /* Subtle grid lines */
+        .graph-card .grid-line { stroke: #f1f5f9; stroke-width: 1; }
+        
+        .graph-card .line1 { fill: none; stroke: #3B82F6; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; animation: moveLine 5s infinite linear; filter: drop-shadow(0 0 2px rgba(59,130,246,0.6)) drop-shadow(0 0 6px rgba(59,130,246,0.35)) drop-shadow(0 2px 12px rgba(59,130,246,0.15)); }
+        .graph-card .line2 { fill: none; stroke: #60A5FA; stroke-width: 3; stroke-linecap: round; opacity: 0.85; stroke-dasharray: 300; stroke-dashoffset: 300; animation: moveLine 5s infinite linear reverse; filter: drop-shadow(0 0 2px rgba(96,165,250,0.5)) drop-shadow(0 0 6px rgba(96,165,250,0.25)); }
+        .graph-card .line3 { fill: none; stroke: #10B981; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; animation: moveLine 5s infinite linear; filter: drop-shadow(0 0 2px rgba(16,185,129,0.6)) drop-shadow(0 0 6px rgba(16,185,129,0.35)) drop-shadow(0 2px 12px rgba(16,185,129,0.15)); }
+        .graph-card .line4 { fill: none; stroke: #EC4899; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; animation: moveLine 5s infinite linear; filter: drop-shadow(0 0 2px rgba(236,72,153,0.6)) drop-shadow(0 0 6px rgba(236,72,153,0.35)) drop-shadow(0 2px 12px rgba(236,72,153,0.15)); }
+
+        @keyframes moveLine { 0% { stroke-dashoffset: 300; } 100% { stroke-dashoffset: 0; } }
+
+        /* Navbar Animated Loader */
+        .loader-wrapper {
+            position: relative;
+            display: inline-block; /* Behaves like inline text for perfect flex baseline handling */
+            width: 50px; /* Properly bounds the newly reduced 0.66 scale */
+            height: 24px; /* Reduced vertical bounding box to support tight native layout physics */
+        }
+        .loader {
+            position: absolute;
+            bottom: 0px; /* Anchors bottom exactly to wrapper bottom (which natively aligns to text baseline) */
+            left: 0;
+            width: 75px;
+            height: 100px;
+            transform: scale(0.66) translateY(1px); /* Shrunk by ~17% from 0.8, with tiny 1px text-cap offset */
+            transform-origin: left bottom;
+        }
+        .loader__bar {
+            position: absolute; bottom: 0; width: 10px; height: 50%;
+            background: var(--text-heading); transform-origin: center bottom;
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+        }
+        .loader__bar:nth-child(1) { left: 0px; transform: scale(1, 0.2); animation: barUp1 4s infinite; }
+        .loader__bar:nth-child(2) { left: 15px; transform: scale(1, 0.4); animation: barUp2 4s infinite; }
+        .loader__bar:nth-child(3) { left: 30px; transform: scale(1, 0.6); animation: barUp3 4s infinite; }
+        .loader__bar:nth-child(4) { left: 45px; transform: scale(1, 0.8); animation: barUp4 4s infinite; }
+        .loader__bar:nth-child(5) { left: 60px; transform: scale(1, 1); animation: barUp5 4s infinite; }
+        
+        .loader__ball {
+            position: absolute; bottom: 10px; left: 0; width: 10px; height: 10px;
+            background: rgb(44, 143, 255); border-radius: 50%; animation: ball624 4s infinite;
+        }
+
+        @keyframes ball624 {
+            0%, 100% { transform: translate(0, 0); }
+            5% { transform: translate(8px, -14px); }
+            10% { transform: translate(15px, -10px); }
+            17% { transform: translate(23px, -24px); }
+            20% { transform: translate(30px, -20px); }
+            27% { transform: translate(38px, -34px); }
+            30% { transform: translate(45px, -30px); }
+            37% { transform: translate(53px, -44px); }
+            40% { transform: translate(60px, -40px); }
+            50% { transform: translate(60px, 0); }
+            57% { transform: translate(53px, -14px); }
+            60% { transform: translate(45px, -10px); }
+            67% { transform: translate(37px, -24px); }
+            70% { transform: translate(30px, -20px); }
+            77% { transform: translate(22px, -34px); }
+            80% { transform: translate(15px, -30px); }
+            87% { transform: translate(7px, -44px); }
+            90% { transform: translate(0, -40px); }
+        }
+        @keyframes barUp1 { 0%, 40%, 100% { transform: scale(1, 0.2); } 50%, 90% { transform: scale(1, 1); } }
+        @keyframes barUp2 { 0%, 40%, 100% { transform: scale(1, 0.4); } 50%, 90% { transform: scale(1, 0.8); } }
+        @keyframes barUp3 { 0%, 100% { transform: scale(1, 0.6); } }
+        @keyframes barUp4 { 0%, 40%, 100% { transform: scale(1, 0.8); } 50%, 90% { transform: scale(1, 0.4); } }
+        @keyframes barUp5 { 0%, 40%, 100% { transform: scale(1, 1); } 50%, 90% { transform: scale(1, 0.2); } }
+
+        /* ---- Animated Login Box ---- */
+        .login-box {
+            position: relative;
+            width: 400px;
+            padding: 40px;
+            margin: 40px auto 30px;
+            background: rgba(0,0,0,.9);
+            box-sizing: border-box;
+            box-shadow: 0 15px 25px rgba(0,0,0,.6);
+            border-radius: 10px;
+            z-index: 10;
+        }
+        .login-box p.form-title {
+            margin: 0 0 30px;
+            padding: 0;
+            color: #fff;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .login-box .user-box { position: relative; }
+        .login-box .user-box input {
+            width: 100%; padding: 10px 0; font-size: 16px; color: #fff;
+            margin-bottom: 30px; border: none; border-bottom: 1px solid #fff;
+            outline: none; background: transparent;
+        }
+        .login-box .user-box label {
+            position: absolute; top: 0; left: 0; padding: 10px 0;
+            font-size: 16px; color: #fff; pointer-events: none; transition: .5s;
+        }
+        .login-box .user-box input:focus ~ label,
+        .login-box .user-box input:valid ~ label {
+            top: -20px; left: 0; color: #fff; font-size: 12px;
+        }
+        .login-box form a.btn-glow {
+            position: relative; display: inline-block; padding: 10px 20px;
+            font-weight: bold; color: #fff; font-size: 16px; text-decoration: none;
+            text-transform: uppercase; overflow: hidden; transition: .5s;
+            margin-top: 40px; letter-spacing: 3px;
+        }
+        .login-box a.btn-glow:hover {
+            background: #fff; color: #272727; border-radius: 5px;
+        }
+        .login-box a.btn-glow span { position: absolute; display: block; }
+        .login-box a.btn-glow span:nth-child(1) {
+            top: 0; left: -100%; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #fff);
+            animation: btn-anim1 1.5s linear infinite;
+        }
+        @keyframes btn-anim1 { 0% { left: -100%; } 50%,100% { left: 100%; } }
+        .login-box a.btn-glow span:nth-child(2) {
+            top: -100%; right: 0; width: 2px; height: 100%;
+            background: linear-gradient(180deg, transparent, #fff);
+            animation: btn-anim2 1.5s linear infinite; animation-delay: .375s;
+        }
+        @keyframes btn-anim2 { 0% { top: -100%; } 50%,100% { top: 100%; } }
+        .login-box a.btn-glow span:nth-child(3) {
+            bottom: 0; right: -100%; width: 100%; height: 2px;
+            background: linear-gradient(270deg, transparent, #fff);
+            animation: btn-anim3 1.5s linear infinite; animation-delay: .75s;
+        }
+        @keyframes btn-anim3 { 0% { right: -100%; } 50%,100% { right: 100%; } }
+        .login-box a.btn-glow span:nth-child(4) {
+            bottom: -100%; left: 0; width: 2px; height: 100%;
+            background: linear-gradient(360deg, transparent, #fff);
+            animation: btn-anim4 1.5s linear infinite; animation-delay: 1.125s;
+        }
+        @keyframes btn-anim4 { 0% { bottom: -100%; } 50%,100% { bottom: 100%; } }
+        
+        .login-box p.form-footer { color: #aaa; font-size: 14px; margin-top: 30px; text-align: center; }
+        .login-box a.a2 { color: #fff; text-decoration: none; }
+        .login-box a.a2:hover { background: transparent; color: #aaa; border-radius: 5px; }
+
+        /* ═════ HERO SCATTERED CLUSTER ═════ */
+        .hero-showcase-grid {
+            position: relative; z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            column-gap: 32px;
+            row-gap: 40px;
+            width: 100%; max-width: 540px;
+            margin: 60px auto 50px;
+        }
+        .sc-anim-wrapper {
+            width: calc(50% - 16px);
+            min-width: 220px;
+            z-index: 10;
+        }
+        .showcase-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            padding: 20px 22px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-light);
+            transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease;
+            width: 100%; height: 100%;
+        }
+        
+        /* Scatter positioning mapped to wrappers */
+        .sc-anim-wrapper:nth-child(1) .showcase-card { transform: translate(-25px, -20px); }
+        .sc-anim-wrapper:nth-child(2) .showcase-card { transform: translate(15px, 5px); }
+        .sc-anim-wrapper:nth-child(3) .showcase-card { transform: translate(-10px, 15px); }
+        .sc-anim-wrapper:nth-child(4) .showcase-card { transform: translate(25px, 30px); }
+
+        .sc-anim-wrapper:nth-child(1):hover .showcase-card { transform: translate(-25px, -25px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .sc-anim-wrapper:nth-child(2):hover .showcase-card { transform: translate(15px, 0px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .sc-anim-wrapper:nth-child(3):hover .showcase-card { transform: translate(-10px, 10px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .sc-anim-wrapper:nth-child(4):hover .showcase-card { transform: translate(25px, 25px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .showcase-card.graph-showcase {
+            flex-direction: column; align-items: stretch; gap: 8px;
+        }
+        .showcase-card .sc-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+        .showcase-card .sc-value { font-size: 1.1rem; font-weight: 800; color: var(--text-heading); }
+        .showcase-card .sc-sub { font-size: 0.72rem; opacity: 0.65; margin-top: 2px; }
+        .showcase-card .graph-lines svg { width: 100%; height: 48px; display: block; overflow: visible; }
+        .hero-cta-row {
+            display: flex; gap: 16px; justify-content: center; margin-top: 8px;
+        }
+        .hero-cta-row a {
+            text-decoration: none; font-size: 0.95rem; font-weight: 600;
+            padding: 12px 28px; border-radius: 100px; transition: all 0.25s ease;
+        }
+        .hero-cta-primary {
+            background: var(--text-heading); color: #fff;
+        }
+        .hero-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,0.18); }
+        .hero-cta-secondary {
+            background: transparent; color: var(--text-heading);
+            border: 1.5px solid var(--border-light);
+        }
+        .hero-cta-secondary:hover { border-color: var(--text-heading); }
+
+        @media (max-width: 1000px) {
+            .workflow-grid { grid-template-columns: 1fr; gap: 40px; }
+            .pipeline-track { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+            .p-line { width: 30px; height: 2px; }
+            .p-line::after { right: 0; top: -4px; bottom: auto; left: auto; transform: rotate(-45deg); }
+            
+            .edge-el { display: none; } /* Hide parallax on mobile for cleaner look */
+            .hero h1 { font-size: 2.8rem; }
+            
+            .d-chart { display: none; } /* Simplify right column on mobile */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Hero Wrapper (Acctual pattern) -->
+    <div class="hero-scroll-track" id="hero-track">
+        <div class="hero-sticky-wrapper" id="hero-sticky">
+
+        <!-- Anchored Edge Elements (Scroll Fade, driven by sticky hero rect) -->
+    <div class="edge-container" id="edge-container">
+        
+        <!-- Left Side: Helper Cards & Graph -->
+        <div class="edge-el e-tl" style="background: #EFF6FF; border: 1px solid #BFDBFE; box-shadow: 0 4px 12px rgba(59,130,246,0.06);">
+            <div class="fc-text"><h4 style="color:#1E3A8A;">2.4m Rows</h4><p style="color:#1E3A8A; opacity:0.8;">Cleaned in 3.2s</p></div>
+        </div>
+        <!-- Revenue Trend Graph (Moved left) -->
+        <div class="edge-el e-tl2 graph-card" style="padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+            <div class="card-content">
+                <div class="info"><p>Revenue Trend</p><h2>$142.8k Rev</h2></div>
+                <div class="graph-lines">
+                    <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                        <line class="grid-line" x1="0" y1="25" x2="300" y2="25"></line><line class="grid-line" x1="0" y1="50" x2="300" y2="50"></line><line class="grid-line" x1="0" y1="75" x2="300" y2="75"></line>
+                        <path d="M0,90 Q70,70 140,50 T300,10" class="line line3"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="edge-el e-ml2" style="border-left: 3px solid #60A5FA; background: #F8FAFC; box-shadow: 0 4px 12px rgba(15,23,42,0.04);">
+            <div class="fc-text"><h4 style="color:#1E293B;">CTR drop detected</h4><p>Campaign B down 12%</p></div>
+        </div>
+        <div class="edge-el e-bl" style="background: #F0FDF4; border: 1px solid #BBF7D0; box-shadow: 0 4px 12px rgba(22,101,52,0.06);">
+            <div class="status-dot" style="background:#10B981; box-shadow: 0 0 8px rgba(16,185,129,0.4);"></div>
+            <div class="fc-text"><h4 style="color:#065F46;">100% Clean</h4><p style="color:#065F46; opacity:0.8;">Validation Pass</p></div>
+        </div>
+        <div class="edge-el e-bl2" style="background: #FDF2F8; border: 1px solid #FBCFE8; box-shadow: 0 4px 12px rgba(219,39,119,0.06);">
+            <div class="fc-text"><h4 style="color:#BE185D;">+18% Growth</h4><p style="color:#BE185D; opacity:0.8;">MoM Cohort</p></div>
+        </div>
+
+        <!-- Right Side: Graph Cards -->
+        <!-- Stacked 1: CTR Graph -->
+        <div class="edge-el e-tr graph-card" style="box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+            <div class="card-content">
+                <div class="info"><p>Campaign Performance</p><h2>3.8% CTR</h2></div>
+                <div class="graph-lines">
+                    <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                        <line class="grid-line" x1="0" y1="25" x2="300" y2="25"></line><line class="grid-line" x1="0" y1="50" x2="300" y2="50"></line><line class="grid-line" x1="0" y1="75" x2="300" y2="75"></line>
+                        <path d="M0,70 Q50,20 100,60 T200,30 T300,70" class="line line1"></path>
+                        <path d="M0,30 Q50,80 100,40 T200,70 T300,20" class="line line2"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side: Helper Cards -->
+        <div class="edge-el e-mr2" style="border-left: 3px solid #F472B6; background:#F8FAFC; box-shadow: 0 4px 12px rgba(15,23,42,0.04);">
+            <div class="fc-text"><h4 style="color:#1E293B;">Anomaly detected</h4><p>Spend unoptimized</p></div>
+        </div>
+        <!-- Stacked 2: Conversion Rate -->
+        <div class="edge-el e-tr3 graph-card" style="box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+            <div class="card-content">
+                <div class="info"><p>Conversion Rate</p><h2>4.2% Conv</h2></div>
+                <div class="graph-lines">
+                    <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                        <line class="grid-line" x1="0" y1="25" x2="300" y2="25"></line><line class="grid-line" x1="0" y1="50" x2="300" y2="50"></line><line class="grid-line" x1="0" y1="75" x2="300" y2="75"></line>
+                        <path d="M0,60 Q50,10 120,40 T240,60 T300,20" class="line line4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- Pastel KPI -->
+        <div class="edge-el e-br2" style="background: #FFF1F2; border: 1px solid #FECDD3; box-shadow: 0 4px 12px rgba(225,29,72,0.06);">
+            <div class="fc-text"><h4 style="color:#BE185D;">ROI Trending</h4><p style="color:#BE185D; opacity:0.8;">Δ 14.2% Growth</p></div>
+        </div>
+
+    </div>
+
+    <!-- Minimal Navbar -->
+    <nav class="navbar">
+        <a href="/" class="nav-logo">
+            <div class="loader-wrapper">
+                <div class="loader">
+                  <div class="loader__bar"></div>
+                  <div class="loader__bar"></div>
+                  <div class="loader__bar"></div>
+                  <div class="loader__bar"></div>
+                  <div class="loader__bar"></div>
+                  <div class="loader__ball"></div>
+                </div>
+            </div>
+            ReFyn Data
+        </a>
+        <div class="nav-links">
+            <a href="/login">Sign In</a>
+            <a href="/register" class="btn-nav-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-bg"></div>
+        <h1>Bring your <span class="highlight">data</span>, we'll handle the rest.</h1>
+        
+        <!-- Full-Width Immersive Illustration Background -->
+        <div id="hero-illustration" style="position: absolute; top: 15vh; left: 0; width: 100%; height: 85vh; opacity: 0; z-index: 1; pointer-events: none; background-image: url('/static/images/pinterest_illustration.jpg'); background-size: cover; background-position: center center; background-repeat: no-repeat; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);">
+        </div>
+        
+        <!-- Hero Showcase Grid — replaces login card -->
+        <div class="hero-showcase-grid">
+            <!-- +18% Growth -->
+            <div class="sc-anim-wrapper" data-move-x="-200" data-move-y="-120">
+                <div class="showcase-card" style="border-left: 3px solid #F472B6;">
+                    <div>
+                        <div class="sc-value" style="color:#BE185D;">+18% Growth</div>
+                        <div class="sc-sub" style="color:#BE185D;">MoM Cohort</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 100% Clean -->
+            <div class="sc-anim-wrapper" data-move-x="200" data-move-y="-120">
+                <div class="showcase-card" style="border-left: 3px solid #10B981;">
+                    <div class="status-dot" style="background:#10B981; box-shadow: 0 0 8px rgba(16,185,129,0.4); width:8px; height:8px; border-radius:50%; flex-shrink:0;"></div>
+                    <div>
+                        <div class="sc-value" style="color:#065F46;">100% Clean</div>
+                        <div class="sc-sub" style="color:#065F46;">Validation Pass</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Conversion Rate -->
+            <div class="sc-anim-wrapper" data-move-x="-200" data-move-y="120">
+                <div class="showcase-card graph-card graph-showcase">
+                    <div>
+                        <div class="sc-label">Conversion Rate</div>
+                        <div class="sc-value">4.2% Conv</div>
+                    </div>
+                    <div class="graph-lines">
+                        <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                            <line class="grid-line" x1="0" y1="25" x2="300" y2="25"></line><line class="grid-line" x1="0" y1="50" x2="300" y2="50"></line><line class="grid-line" x1="0" y1="75" x2="300" y2="75"></line>
+                            <path d="M0,60 Q50,10 120,40 T240,60 T300,20" class="line line4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <!-- ROI Trending -->
+            <div class="sc-anim-wrapper" data-move-x="200" data-move-y="120">
+                <div class="showcase-card" style="border-left: 3px solid #EC4899;">
+                    <div>
+                        <div class="sc-value" style="color:#BE185D;">ROI Trending</div>
+                        <div class="sc-sub" style="color:#BE185D;">Δ 14.2% Growth</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="hero-cta-row">
+            <a href="/login" class="hero-cta-primary">Sign In</a>
+            <a href="/register" class="hero-cta-secondary">Get Started</a>
+        </div>
+    </header>
+
+    </div><!-- end .hero-sticky-wrapper -->
+    </div><!-- end .hero-scroll-track -->
+
+    <!-- Snake-Scroll Storytelling Workflow Section -->
+    <section class="snake-workflow" id="workflow">
+        <div class="workflow-header">
+            <h2>The Data Engineering Engine</h2>
+            <p>A seamless, automated journey from raw chaos to refined intelligence.</p>
+        </div>
+        
+        <div class="snake-container">
+            <!-- Dynamic SVG Path Layer -->
+            <svg class="snake-svg-layer" viewBox="0 0 1000 2000" preserveAspectRatio="none">
+                <path class="snake-path" d="M 200 100 C 200 300, 800 300, 800 500 C 800 700, 200 700, 200 900 C 200 1100, 800 1100, 800 1300 C 800 1500, 200 1500, 200 1700" />
+                <path id="snake-progress" class="snake-path-progress" d="M 200 100 C 200 300, 800 300, 800 500 C 800 700, 200 700, 200 900 C 200 1100, 800 1100, 800 1300 C 800 1500, 200 1500, 200 1700" />
+            </svg>
+
+            <!-- Step 1: Upload Raw CSV -->
+            <div class="step-item">
+                <div class="step-card">
+                    <div class="step-icon" style="background: #ecfdf5; color: #10b981;">📁</div>
+                    <div class="step-title">1. Upload Raw CSV</div>
+                    <div class="step-desc">Drag and drop messy, unstructured datasets directly into our ingestion engine.</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Raw Data Stored -->
+            <div class="step-item">
+                <div class="step-card">
+                    <div class="step-icon" style="background: #eff6ff; color: #3b82f6;">🗄️</div>
+                    <div class="step-title">2. Raw Data Stored</div>
+                    <div class="step-desc">Your raw records are securely vaulted in our high-performance staging layer.</div>
+                </div>
+            </div>
+
+            <!-- Step 3: Data Cleaning & Transformation -->
+            <div class="step-item">
+                <div class="step-card">
+                    <div class="step-icon" style="background: #fff1f2; color: #f43f5e;">⚡</div>
+                    <div class="step-title">3. Data Transformation</div>
+                    <div class="step-desc">Cleaning, deduplication, and schema mapping executed via optimized Airflow DAGs.</div>
+                </div>
+            </div>
+
+            <!-- Step 4: Cleaned Data Stored -->
+            <div class="step-item">
+                <div class="step-card">
+                    <div class="step-icon" style="background: #f0fdf4; color: #16a34a;">✨</div>
+                    <div class="step-title">4. Cleaned Data Stored</div>
+                    <div class="step-desc">Refined data is indexed and ready for high-speed retrieval and downstream analytics.</div>
+                </div>
+            </div>
+
+            <!-- Step 5: Insights Generated -->
+            <div class="step-item">
+                <div class="step-card">
+                    <div class="step-icon" style="background: #fdf2f8; color: #db2777;">📊</div>
+                    <div class="step-title">5. Dashboards & Insights</div>
+                    <div class="step-desc">Richer visualizations and predictive analytics surfacing value at your fingertips.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interaction Logic -->
+    <script>
+        // Session Check: If already logged in, update UI
+        if (localStorage.getItem('isAuthenticated') === 'true') {
+            // Update Hero CTA
+            const ctaRow = document.querySelector('.hero-cta-row');
+            if (ctaRow) {
+                ctaRow.innerHTML = '<a href="/dashboard" class="hero-cta-primary">Back to Dashboard</a>';
+            }
+            // Update Navbar links
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) {
+                navLinks.innerHTML = '<a href="/dashboard" class="btn-nav-primary">Dashboard</a>';
+            }
+        }
+        // Auth Tabs
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.getElementById('form-' + tabId).classList.add('active');
+        }
+
+        // ─── ACCTUAL-EXACT STICKY HERO SCROLL ANIMATION ───────────────────
+        // We track the `.hero-scroll-track` container's Y position to measure
+        // exactly how deep we've scrolled into the 250vh area.
+        const heroTrack = document.getElementById('hero-track');
+        const edgeEls   = document.querySelectorAll('.edge-el');
+
+        // Pre-compute original rotation and exit trajectories for each element
+        const rotations = {
+            'e-tl': '-2deg', 'e-ml': '1deg',  'e-bl': '-3deg',
+            'e-tl2': '2deg', 'e-ml2': '-1.5deg',  'e-bl2': '1.5deg',
+            
+            'e-tr': '3deg',  'e-tr2': '-1.5deg', 'e-tr3': '1deg',
+            'e-mr': '-2deg', 'e-mr2': '2deg', 'e-br2': '-1.5deg'
+        };
+
+        const originOffsets = {
+            'e-tl': { x: -250, y: -150 }, 'e-tl2': { x: -200, y: -180 },
+            'e-ml': { x: -300, y: 0 },    'e-ml2': { x: -250, y: -40 },
+            'e-bl': { x: -250, y: 150 },  'e-bl2': { x: -200, y: 180 },
+            
+            'e-tr': { x: 250, y: -150 },  'e-tr2': { x: 300, y: 0 },
+            'e-tr3': { x: 250, y: 150 },
+            
+            'e-mr': { x: 200, y: -180 },  'e-mr2': { x: 200, y: 0 },
+            'e-br2': { x: 200, y: 180 }
+        };
+
+        function getRotation(el) {
+            for (const [cls, rot] of Object.entries(rotations)) {
+                if (el.classList.contains(cls)) return rot;
+            }
+            return '0deg';
+        }
+
+        function getMovement(el) {
+            for (const [cls, move] of Object.entries(originOffsets)) {
+                if (el.classList.contains(cls)) return move;
+            }
+            return { x: 0, y: -150 }; // fallback
+        }
+
+        // Apply ease-in-out curve for natural, premium SaaS motion
+        // Starts slow, speeds up in middle, slows down at end
+        function easeInOut(t) {
+            return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        }
+
+        let rafPending = false;
+
+        function updateEdgeElements() {
+            const rect = heroTrack.getBoundingClientRect();
+            // Animation depth reduced to 15vh (from 40vh) to match the tighter track height.
+            // This forces transitions to occur rapidly within 1.5 scroll "clicks".
+            const startScroll = 0;
+            const endScroll = window.innerHeight * 0.15;
+            const range = endScroll - startScroll;
+
+            // Math.max guarantees we don't start animating until we reach startScroll
+            let progress = (-rect.top - startScroll) / range;
+            
+            // Clamp 0–1
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            // Apply ease-in-out math to progress (t)
+            const easedProgress = easeInOut(progress);
+
+            // 1) Scatter the edge elements
+            edgeEls.forEach(el => {
+                const rot = getRotation(el);
+                const move = getMovement(el);
+                const opacity = 1 - easedProgress;
+                const transX  = easedProgress * move.x;
+                const transY  = easedProgress * move.y;
+                el.style.opacity   = opacity;
+                el.style.transform = `translate(${transX}px, ${transY}px) rotate(${rot})`;
+            });
+
+            // 2) Scatter the new center KPI showcase wrappers
+            const scWrappers = document.querySelectorAll('.sc-anim-wrapper');
+            scWrappers.forEach(el => {
+                const mx = parseInt(el.getAttribute('data-move-x')) || 0;
+                const my = parseInt(el.getAttribute('data-move-y')) || 0;
+                el.style.opacity = 1 - easedProgress;
+                el.style.transform = `translate(${easedProgress * mx}px, ${easedProgress * my}px)`;
+            });
+
+            // 3) Fade, Scale-down, and Rise the new full-width immersive background
+            const heroImg = document.getElementById('hero-illustration');
+            if (heroImg) {
+                // Starts zoomed-in (1.05) to avoid edge gaps, moves up 60px to native position, fades to 1
+                const scale = 1.05 - (easedProgress * 0.05);
+                const imgY = 60 - (easedProgress * 60);
+                heroImg.style.opacity = easedProgress;
+                heroImg.style.transform = `translateY(${imgY}px) scale(${scale})`;
+            }
+
+            rafPending = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!rafPending) {
+                rafPending = true;
+                window.requestAnimationFrame(updateEdgeElements);
+            }
+        }, { passive: true });
+
+        // Run once on load so initial state is correct
+        updateEdgeElements();
+
+        // Scroll Intersection Observer for Story Elements
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.story-block').forEach(block => observer.observe(block));
+
+        // ─── SNAKE PATH SCROLL DRAWING ───────────────────────────────────
+        const snakeProgressPath = document.getElementById('snake-progress');
+        const snakeContainer = document.querySelector('.snake-container');
+        
+        if (snakeProgressPath && snakeContainer) {
+            const pathLength = snakeProgressPath.getTotalLength();
+            // Initialize dasharray to path length
+            snakeProgressPath.style.strokeDasharray = pathLength;
+            snakeProgressPath.style.strokeDashoffset = pathLength;
+
+            function updateSnakePath() {
+                const rect = snakeContainer.getBoundingClientRect();
+                const viewHeight = window.innerHeight;
+                
+                // Adjusted trigger: Start drawing sooner (60% depth) now that sections are tighter.
+                const start = viewHeight * 0.6; 
+                const progressRange = rect.height;
+                
+                let progress = ( (viewHeight - rect.top) - start ) / progressRange;
+                
+                if (progress < 0) progress = 0;
+                if (progress > 1) progress = 1;
+                
+                // Draw the path
+                snakeProgressPath.style.strokeDashoffset = pathLength - (progress * pathLength);
+            }
+
+            window.addEventListener('scroll', updateSnakePath, { passive: true });
+            updateSnakePath(); // Initial call
+        }
+
+        // ─── STEP REVEAL ANIMATION (Intersection Observer) ───────────────
+        const stepObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('sr-visible');
+                }
+            });
+        }, { threshold: 0.2, rootMargin: '0px 0px -100px 0px' });
+
+        document.querySelectorAll('.step-item').forEach(item => stepObserver.observe(item));
+    </script>
+</body>
+</html>

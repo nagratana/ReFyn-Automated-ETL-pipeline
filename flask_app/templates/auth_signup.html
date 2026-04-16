@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | ReFyn Data</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-page: #1C3334;
+            --bg-surface: #2F4454;
+            --bg-subtle: rgba(255, 255, 255, 0.06);
+            --text-heading: #f0ebe3;
+            --text-body: rgba(240, 235, 227, 0.65);
+            --text-muted: rgba(240, 235, 227, 0.4);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-focus: #DA7B93;
+            --shadow-float: 0 24px 64px -16px rgba(0,0,0,0.4), 0 0 0 1px var(--border-light);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --btn-bg: #DA7B93;
+            --btn-hover: #e8a0b4;
+            --error-bg: rgba(218, 123, 147, 0.1);
+            --error-text: #DA7B93;
+            --error-border: rgba(218, 123, 147, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-float);
+            padding: 40px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+        }
+
+        .clean-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-heading);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .clean-input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(218, 123, 147, 0.25);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--btn-bg);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(218, 123, 147, 0.3);
+            background: var(--btn-hover);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.85rem;
+        }
+
+        .auth-footer a {
+            color: var(--text-heading);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .error-badge {
+            display: none;
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-border);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Join ReFyn Data</h1>
+                <p>Start your journey toward clean, insightful marketing data.</p>
+            </div>
+
+            <div id="error-message" class="error-badge">User already exists.</div>
+
+            <form id="signup-form">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="username" class="clean-input" placeholder="e.g. alex_data" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" class="clean-input" placeholder="alex@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" class="clean-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-submit">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorBadge = document.getElementById('error-message');
+            const submitBtn = this.querySelector('.btn-submit');
+
+            errorBadge.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password }),
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    errorBadge.textContent = data.error || 'Registration failed.';
+                    errorBadge.style.display = 'block';
+                }
+            } catch (err) {
+                errorBadge.textContent = 'Connection error. Please try again.';
+                errorBadge.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        });
+
+        // If already authenticated, redirect to dashboard
+        fetch('/api/auth/check').then(r => {
+            if (r.ok) window.location.href = '/dashboard';
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Analytics Dashboard</title>
+    <meta name="description" content="Real-time marketing analytics dashboard with ETL pipeline integration">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>M</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        // Route Protection: Verify session with backend
+        // (Flask @login_required also guards this route server-side as a primary check)
+        fetch('/api/auth/check').then(r => {
+            if (!r.ok) window.location.href = '/login';
+        }).catch(() => {
+            window.location.href = '/login';
+        });
+    </script>
+</head>
+<body>
+    <!-- ═══════ Animated Background ═══════ -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <!-- ═══════ Navigation ═══════ -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/></svg></span>
+            <span class="nav-title">Marketing Analytics</span>
+        </div>
+        <div class="nav-actions">
+            <div id="db-status" class="status-badge status-checking">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking...</span>
+            </div>
+            <button class="btn btn-primary" onclick="openUploadModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Data
+            </button>
+            <div class="user-menu">
+                <div class="user-avatar" id="user-avatar-initial">U</div>
+                <span class="user-name" id="user-display-name">User</span>
+                <button onclick="handleLogout()" class="btn btn-ghost btn-logout" title="Sign Out">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════ Main Content ═══════ -->
+    <main class="container">
+
+        <!-- ── Table Selector ── -->
+        <div class="section-header">
+            <div class="select-wrapper">
+                <label for="table-select">Dataset</label>
+                <select id="table-select" onchange="loadDashboard(this.value)">
+                    <option value="">Select a dataset...</option>
+                </select>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-ghost" onclick="refreshAll()" title="Refresh">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+                <button class="btn btn-ghost" id="download-btn" onclick="downloadCSV()" title="Download" style="display:none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── KPI Cards ── -->
+        <div class="kpi-grid" id="kpi-grid">
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-records"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="kpi-value" id="kpi-records">—</div>
+                <div class="kpi-label">Total Records</div>
+            </div>
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-revenue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <div class="kpi-value" id="kpi-revenue">—</div>
+                <div class="kpi-label">Total Revenue</div>
+            </div>
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-clicks"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2z"/><path d="M22 22l-5-10"/></svg></div>
+                <div class="kpi-value" id="kpi-clicks">—</div>
+                <div class="kpi-label">Total Clicks</div>
+            </div>
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-ctr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+                <div class="kpi-value" id="kpi-ctr">—</div>
+                <div class="kpi-label">Avg CTR</div>
+            </div>
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-impressions"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                <div class="kpi-value" id="kpi-impressions">—</div>
+                <div class="kpi-label">Impressions</div>
+            </div>
+            <div class="kpi-card kpi-skeleton">
+                <div class="kpi-icon icon-conversions"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+                <div class="kpi-value" id="kpi-conversions">—</div>
+                <div class="kpi-label">Conversions</div>
+            </div>
+        </div>
+
+        <!-- ── ETL Before/After Comparison ── -->
+        <div class="etl-comparison" id="etl-comparison" style="display: none;">
+            <div class="etl-comparison-header">
+                <h3>ETL Data Quality Report</h3>
+                <span class="etl-source" id="etl-source"></span>
+            </div>
+            <div class="etl-comparison-body">
+                <div class="etl-side etl-before">
+                    <div class="etl-side-label">BEFORE CLEANING</div>
+                    <div class="etl-stat-grid">
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="before-rows">—</span>
+                            <span class="etl-stat-label">Rows</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="before-cols">—</span>
+                            <span class="etl-stat-label">Columns</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value danger" id="before-dupes">—</span>
+                            <span class="etl-stat-label">Duplicates</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value danger" id="before-nulls">—</span>
+                            <span class="etl-stat-label">Null Values</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="before-memory">—</span>
+                            <span class="etl-stat-label">Memory (MB)</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value danger" id="before-null-pct">—</span>
+                            <span class="etl-stat-label">Null %</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="etl-arrow-divider">
+                    <div class="etl-arrow-line"></div>
+                    <div class="etl-arrow-icon">→</div>
+                    <div class="etl-arrow-label">ETL</div>
+                    <div class="etl-arrow-line"></div>
+                </div>
+                <div class="etl-side etl-after">
+                    <div class="etl-side-label">AFTER CLEANING</div>
+                    <div class="etl-stat-grid">
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="after-rows">—</span>
+                            <span class="etl-stat-label">Rows</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="after-cols">—</span>
+                            <span class="etl-stat-label">Columns</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value success" id="after-dupes">0</span>
+                            <span class="etl-stat-label">Duplicates</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value success" id="after-nulls">0</span>
+                            <span class="etl-stat-label">Null Values</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value" id="after-memory">—</span>
+                            <span class="etl-stat-label">Memory (MB)</span>
+                        </div>
+                        <div class="etl-stat">
+                            <span class="etl-stat-value success" id="after-null-pct">0%</span>
+                            <span class="etl-stat-label">Null %</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Changes summary badges -->
+            <div class="etl-changes" id="etl-changes"></div>
+        </div>
+
+        <!-- -- Performance Summary Row -- -->
+        <div class="perf-summary" id="perf-summary" style="display: none;">
+            <div class="perf-card">
+                <div class="perf-icon" style="background: rgba(168, 85, 247, 0.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <div class="perf-info">
+                    <span class="perf-value" id="perf-rpc">—</span>
+                    <span class="perf-label">Revenue / Click</span>
+                </div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-icon" style="background: rgba(34, 197, 94, 0.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                <div class="perf-info">
+                    <span class="perf-value" id="perf-adr">—</span>
+                    <span class="perf-label">Avg Daily Revenue</span>
+                </div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-icon" style="background: rgba(56, 189, 248, 0.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+                <div class="perf-info">
+                    <span class="perf-value" id="perf-ctr">—</span>
+                    <span class="perf-label">Click-Through Rate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- -- Charts Section (expanded 3x3 grid) -- -->
+        <div class="charts-grid-expanded">
+            <!-- Row 1: Revenue (2-col) + Conversion Gauge -->
+            <div class="chart-card chart-span-2">
+                <div class="chart-header">
+                    <h3>Revenue Trend</h3>
+                    <span class="chart-badge">Area</span>
+                </div>
+                <div class="chart-body chart-tall">
+                    <canvas id="chart-revenue"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Conversion Rate</h3>
+                    <span class="chart-badge">Gauge</span>
+                </div>
+                <div class="chart-body chart-tall">
+                    <canvas id="chart-gauge"></canvas>
+                    <div class="gauge-center" id="gauge-center">
+                        <span class="gauge-value" id="gauge-value">0%</span>
+                        <span class="gauge-label">Conv Rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Clicks vs Impressions</h3>
+                    <span class="chart-badge">Bar</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-clicks"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Campaign Funnel</h3>
+                    <span class="chart-badge">Funnel</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-funnel"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Revenue by Weekday</h3>
+                    <span class="chart-badge">Polar</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-weekday"></canvas>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>CTR Distribution</h3>
+                    <span class="chart-badge">Histogram</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-ctr"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Top Revenue Days</h3>
+                    <span class="chart-badge">Horizontal</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-topdays"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Monthly Revenue</h3>
+                    <span class="chart-badge">Grouped</span>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-monthly"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Advanced KPI Cards (hidden until data has advanced columns) ── -->
+        <div class="adv-kpi-section" id="adv-kpi-section" style="display: none;">
+            <div class="section-divider">
+                <span class="divider-label">🚀 Advanced Analytics</span>
+            </div>
+            <div class="kpi-grid kpi-grid-5" id="adv-kpi-grid">
+                <div class="kpi-card kpi-accent-green">
+                    <div class="kpi-icon icon-roas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+                    <div class="kpi-value" id="kpi-roas">—</div>
+                    <div class="kpi-label">Avg ROAS</div>
+                </div>
+                <div class="kpi-card kpi-accent-blue">
+                    <div class="kpi-icon icon-cpa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                    <div class="kpi-value" id="kpi-cpa">—</div>
+                    <div class="kpi-label">Avg CPA</div>
+                </div>
+                <div class="kpi-card kpi-accent-purple">
+                    <div class="kpi-icon icon-engagement"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                    <div class="kpi-value" id="kpi-engagement">—</div>
+                    <div class="kpi-label">Engagement Score</div>
+                </div>
+                <div class="kpi-card kpi-accent-amber">
+                    <div class="kpi-icon icon-margin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+                    <div class="kpi-value" id="kpi-margin">—</div>
+                    <div class="kpi-label">Profit Margin</div>
+                </div>
+                <div class="kpi-card kpi-accent-red" id="kpi-anomaly-card">
+                    <div class="kpi-icon icon-anomaly"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                    <div class="kpi-value" id="kpi-anomalies">—</div>
+                    <div class="kpi-label">Anomalies Detected</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Advanced Charts Section ── -->
+        <div class="adv-charts-section" id="adv-charts-section" style="display: none;">
+            <div class="charts-grid-expanded">
+                <!-- Row 1: ROAS Trend (2-col) + Channel Revenue -->
+                <div class="chart-card chart-span-2">
+                    <div class="chart-header">
+                        <h3>ROAS Trend</h3>
+                        <span class="chart-badge chart-badge-green">Moving Avg</span>
+                    </div>
+                    <div class="chart-body chart-tall">
+                        <canvas id="chart-roas"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Revenue by Channel</h3>
+                        <span class="chart-badge chart-badge-pink">Doughnut</span>
+                    </div>
+                    <div class="chart-body chart-tall">
+                        <canvas id="chart-channel"></canvas>
+                    </div>
+                </div>
+
+                <!-- Row 2: Engagement + Spend Efficiency + Profit Margin -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Engagement Score</h3>
+                        <span class="chart-badge chart-badge-purple">Distribution</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-engagement"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Spend Efficiency</h3>
+                        <span class="chart-badge chart-badge-amber">Tiers</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-efficiency"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Profit Margin</h3>
+                        <span class="chart-badge chart-badge-green">Timeline</span>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-profit"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anomaly Detection Card -->
+            <div class="anomaly-card" id="anomaly-card" style="display: none;">
+                <div class="chart-header">
+                    <h3>🔬 Anomaly Detection</h3>
+                    <span class="chart-badge chart-badge-red" id="anomaly-badge">0 flagged</span>
+                </div>
+                <div class="anomaly-body" id="anomaly-body">
+                    <p class="anomaly-clean">✅ No anomalies detected — all rows are clean!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- -- Top Campaigns Table -- -->
+        <div class="top-campaigns-card" id="top-campaigns-card" style="display: none;">
+            <div class="chart-header">
+                <h3>Top Performing Days</h3>
+                <span class="chart-badge">Leaderboard</span>
+            </div>
+            <div class="top-campaigns-body" id="top-campaigns-body"></div>
+        </div>
+
+        <!-- ── Data Table ── -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Data Explorer</h3>
+                <div class="table-controls">
+                    <input type="text" id="table-search" placeholder="Search..." oninput="filterTable(this.value)">
+                    <span id="table-row-count" class="row-count"></span>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="data-table">
+                    <thead id="table-head"></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <button class="btn btn-ghost" id="prev-page" onclick="changePage(-1)">← Previous</button>
+                <span id="page-info">Page 1</span>
+                <button class="btn btn-ghost" id="next-page" onclick="changePage(1)">Next →</button>
+            </div>
+        </div>
+
+        <!-- ── AI Insights Report ── -->
+        <div class="ai-insights-card" id="ai-insights-card" style="display: none;">
+            <div class="ai-insights-header">
+                <div class="ai-header-left">
+                    <span class="ai-sparkle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <h3>AI Business Insights</h3>
+                    <span class="ai-badge">Gemini 2.0 Flash</span>
+                </div>
+                <button class="btn btn-ai" id="ai-generate-btn" onclick="generateInsights()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Generate Report
+                </button>
+            </div>
+            <div class="ai-insights-body" id="ai-insights-body">
+                <div class="ai-empty-state" id="ai-empty-state">
+                    <p>Click <strong>"Generate Report"</strong> to get AI-powered analysis of your marketing data.</p>
+                    <p class="ai-subtext">Gemini will identify flaws, recommend improvements, and analyze trends.</p>
+                </div>
+                <div class="ai-loading" id="ai-loading" style="display: none;">
+                    <div class="ai-spinner"></div>
+                    <p>Analyzing your data with Gemini 2.0 Flash...</p>
+                    <p class="ai-subtext">This may take 10-20 seconds</p>
+                </div>
+                <div class="ai-report" id="ai-report" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- ── Upload History ── -->
+        <div class="history-card" id="history-card" style="display: none;">
+            <div class="history-header">
+                <h3>Upload History</h3>
+            </div>
+            <div class="history-body" id="history-body">
+                <p class="history-empty">No uploads yet</p>
+            </div>
+        </div>
+
+        <!-- ── Empty State ── -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/></svg></div>
+            <h2>No Data Yet</h2>
+            <p>Upload a CSV or Excel file to get started with your analytics dashboard.</p>
+            <button class="btn btn-primary btn-lg" onclick="openUploadModal()">
+                Upload Your First Dataset
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ═══════ Upload Modal ═══════ -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-overlay" onclick="closeUploadModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Marketing Data</h2>
+                <button class="modal-close" onclick="closeUploadModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="drop-zone" class="drop-zone"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event)">
+                    <div class="drop-zone-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <p class="drop-text">Drag & drop your CSV or Excel file here</p>
+                        <p class="drop-subtext">or click to browse</p>
+                        <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)" hidden>
+                        <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">
+                            Browse Files
+                        </button>
+                    </div>
+                </div>
+                <!-- ── Missing Value Strategy ── -->
+                <div class="fill-strategy-section" id="fill-strategy-section">
+                    <div class="fill-strategy-label">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>How to handle missing values?</span>
+                    </div>
+                    <div class="fill-strategy-options">
+                        <label class="strategy-option selected" id="strategy-zero-label">
+                            <input type="radio" name="fill_strategy" value="zero" checked onchange="selectStrategy(this)">
+                            <div class="strategy-card">
+                                <div class="strategy-icon">0</div>
+                                <div class="strategy-info">
+                                    <strong>Replace with Zero</strong>
+                                    <span>All empty cells become 0</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="strategy-option" id="strategy-mean-label">
+                            <input type="radio" name="fill_strategy" value="mean" onchange="selectStrategy(this)">
+                            <div class="strategy-card">
+                                <div class="strategy-icon">μ</div>
+                                <div class="strategy-info">
+                                    <strong>Replace with Mean</strong>
+                                    <span>Empty cells get column average</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div id="upload-progress" class="upload-progress" style="display: none;">
+                    <div class="upload-file-info">
+                        <span id="upload-filename"></span>
+                        <span id="upload-filesize"></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <p id="upload-status" class="upload-status">Processing...</p>
+                </div>
+                <div id="upload-result" class="upload-result" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ Toast Container ═══════ -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ═══════ Footer ═══════ -->
+    <footer class="footer">
+        <p>Marketing Analytics Dashboard • Built with Flask, Chart.js & PostgreSQL • ETL Pipeline by Airflow</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
