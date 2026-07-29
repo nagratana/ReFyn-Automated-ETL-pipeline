@@ -39,7 +39,12 @@ if not _secret_key:
 app.secret_key = _secret_key
 CORS(app)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "uploads")
+# On Render (production) the filesystem is ephemeral — use /tmp for uploads.
+# Locally, use the data/uploads folder.
+if os.getenv("RENDER"):
+    UPLOAD_FOLDER = "/tmp/refyn_uploads"
+else:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Airflow internal tables to filter out
@@ -129,30 +134,35 @@ def detect_column_roles(df):
 # ─────────────────────────────────────────
 
 def init_auth_tables():
-    """Create users and uploads tables if they don't exist."""
-    engine = get_engine()
-    with engine.connect() as conn:
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS dashboard_users (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(80) UNIQUE NOT NULL,
-                email VARCHAR(120) UNIQUE NOT NULL,
-                password_hash VARCHAR(200) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS user_uploads (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES dashboard_users(id),
-                table_name VARCHAR(200) NOT NULL,
-                filename VARCHAR(200) NOT NULL,
-                rows_loaded INTEGER DEFAULT 0,
-                columns_count INTEGER DEFAULT 0,
-                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-        conn.commit()
+    """Create users and uploads tables if they don't exist. Silently skips if DB is unavailable."""
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS dashboard_users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(80) UNIQUE NOT NULL,
+                    email VARCHAR(120) UNIQUE NOT NULL,
+                    password_hash VARCHAR(200) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_uploads (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER REFERENCES dashboard_users(id),
+                    table_name VARCHAR(200) NOT NULL,
+                    filename VARCHAR(200) NOT NULL,
+                    rows_loaded INTEGER DEFAULT 0,
+                    columns_count INTEGER DEFAULT 0,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.commit()
+        print("[OK] Database tables initialized.")
+    except Exception as e:
+        print(f"[WARNING] Could not connect to database on startup: {e}")
+        print("[WARNING] Flask will start without database. Upload/ETL features require PostgreSQL.")
 
 
 def login_required(f):
@@ -176,6 +186,12 @@ def login_required(f):
 def index():
     """Serve the ReFyn landing page."""
     return send_from_directory(LANDING_DIR, "index.html")
+
+
+@app.route("/images/<path:filename>")
+def landing_images(filename):
+    """Serve images from the refyn-landing/images folder."""
+    return send_from_directory(os.path.join(LANDING_DIR, "images"), filename)
 
 
 @app.route("/landing/<path:filename>")
@@ -1223,7 +1239,9 @@ def get_my_history():
     except Exception as e:
         return jsonify({"uploads": [], "error": str(e)})
 
+# Initialize DB tables when loaded by gunicorn (production) or directly (dev)
+init_auth_tables()
 
 if __name__ == "__main__":
-    init_auth_tables()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)

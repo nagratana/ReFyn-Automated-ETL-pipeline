@@ -1,9 +1,16 @@
 import pandas as pd
 import re
 import os
+import sys
 import json
 import logging
 from datetime import datetime
+
+# Ensure project root is in path so db_connection is always findable
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 from db_connection import get_engine
 from sqlalchemy import inspect, text
 

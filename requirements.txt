@@ -1,7 +1,8 @@
-pandas
-alpha_vantage
-SQLAlchemy
+flask
+flask-cors
+sqlalchemy
 psycopg2-binary
-matplotlib
-plotly
-streamlit
+bcrypt
+pandas
+gunicorn
+openpyxl
