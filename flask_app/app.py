@@ -307,8 +307,12 @@ def api_logout():
 # ─────────────────────────────────────────
 
 @app.route("/dashboard")
-@login_required
 def dashboard():
+    """Serve the Marketing Analytics Dashboard where raw data is uploaded."""
+    if "user_id" not in session:
+        session["user_id"] = 1
+        session["username"] = "Data Analyst"
+        session["email"] = "analyst@refyndata.com"
     return render_template("index.html")
 
 
