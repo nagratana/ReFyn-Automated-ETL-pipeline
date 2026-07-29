@@ -373,10 +373,10 @@ const chartDefaults = {
             }
         },
         tooltip: {
-            backgroundColor: 'rgba(11, 11, 15, 0.95)',
-            titleColor: '#F5F5F5',
+            backgroundColor: 'rgba(13, 21, 21, 0.95)',
+            titleColor: '#dce4e4',
             bodyColor: '#9CA3AF',
-            borderColor: 'rgba(168, 85, 247, 0.2)',
+            borderColor: 'rgba(255, 181, 196, 0.2)',
             borderWidth: 1,
             cornerRadius: 10,
             padding: 12,
@@ -407,8 +407,8 @@ async function loadRevenueChart(tableName) {
 
         // Create gradient
         const gradient = ctx.createLinearGradient(0, 0, 0, 360);
-        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.35)');
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+        gradient.addColorStop(0, 'rgba(255, 181, 196, 0.35)');
+        gradient.addColorStop(1, 'rgba(255, 181, 196, 0.0)');
 
         charts.revenue = new Chart(ctx, {
             type: 'line',
@@ -417,14 +417,14 @@ async function loadRevenueChart(tableName) {
                 datasets: [{
                     label: 'Revenue ($)',
                     data: data.values || [],
-                    borderColor: '#A855F7',
+                    borderColor: '#ffb5c4',
                     backgroundColor: gradient,
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 5,
-                    pointHoverBackgroundColor: '#C084FC',
+                    pointHoverBackgroundColor: '#ffd9df',
                     pointHoverBorderColor: '#fff',
                     pointHoverBorderWidth: 2,
                 }]
@@ -477,18 +477,18 @@ async function loadClicksChart(tableName) {
                     {
                         label: 'Impressions',
                         data: data.impressions || [],
-                        backgroundColor: 'rgba(167, 139, 250, 0.25)',
-                        borderColor: 'rgba(167, 139, 250, 0.6)',
+                        backgroundColor: 'rgba(47, 76, 74, 0.4)',
+                        borderColor: 'rgba(173, 205, 202, 0.6)',
                         borderWidth: 1,
-                        borderRadius: 2,
+                        borderRadius: 4,
                     },
                     {
                         label: 'Clicks',
                         data: data.clicks || [],
-                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
-                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(255, 181, 196, 0.5)',
+                        borderColor: '#ffb5c4',
                         borderWidth: 1,
-                        borderRadius: 2,
+                        borderRadius: 4,
                     },
                 ]
             },
@@ -520,8 +520,8 @@ async function loadCTRChart(tableName) {
 
         // Create gradient for bars
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(244, 114, 182, 0.8)');
-        gradient.addColorStop(1, 'rgba(244, 114, 182, 0.2)');
+        gradient.addColorStop(0, 'rgba(255, 181, 196, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 181, 196, 0.2)');
 
         charts.ctr = new Chart(ctx, {
             type: 'bar',
@@ -531,7 +531,7 @@ async function loadCTRChart(tableName) {
                     label: 'CTR Distribution (%)',
                     data: data.values || [],
                     backgroundColor: gradient,
-                    borderColor: '#f472b6',
+                    borderColor: '#ffb5c4',
                     borderWidth: 1,
                     borderRadius: 4,
                 }]
@@ -578,7 +578,7 @@ async function loadGaugeChart(tableName) {
                 labels: ['Conversion Rate', 'Remaining'],
                 datasets: [{
                     data: [rate, remaining],
-                    backgroundColor: ['#A855F7', 'rgba(255, 255, 255, 0.04)'],
+                    backgroundColor: ['#ffb5c4', 'rgba(255, 255, 255, 0.04)'],
                     borderWidth: 0,
                     borderRadius: 6,
                 }]
@@ -619,11 +619,11 @@ async function loadFunnelChart(tableName) {
                     label: 'Volume',
                     data: [data.impressions || 0, data.clicks || 0, data.conversions || 0],
                     backgroundColor: [
-                        'rgba(56, 189, 248, 0.7)',
-                        'rgba(168, 85, 247, 0.7)',
-                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(173, 205, 202, 0.7)',
+                        'rgba(255, 181, 196, 0.7)',
+                        'rgba(47, 76, 74, 0.7)',
                     ],
-                    borderColor: ['#38bdf8', '#A855F7', '#22C55E'],
+                    borderColor: ['#adcdca', '#ffb5c4', '#2f4c4a'],
                     borderWidth: 1,
                     borderRadius: 6,
                     barThickness: 40,
@@ -666,13 +666,13 @@ async function loadWeekdayChart(tableName) {
 
         const ctx = document.getElementById('chart-weekday').getContext('2d');
         const colors = [
-            'rgba(168, 85, 247, 0.7)',
-            'rgba(56, 189, 248, 0.7)',
-            'rgba(34, 197, 94, 0.7)',
-            'rgba(251, 191, 36, 0.7)',
-            'rgba(248, 113, 113, 0.7)',
-            'rgba(192, 132, 252, 0.7)',
-            'rgba(244, 114, 182, 0.7)',
+            'rgba(255, 181, 196, 0.7)',
+            'rgba(173, 205, 202, 0.7)',
+            'rgba(47, 76, 74, 0.7)',
+            'rgba(202, 201, 198, 0.7)',
+            'rgba(255, 217, 223, 0.7)',
+            'rgba(83, 30, 45, 0.7)',
+            'rgba(214, 193, 196, 0.7)',
         ];
 
         charts.weekday = new Chart(ctx, {
@@ -719,8 +719,8 @@ async function loadTopDaysChart(tableName) {
         const ctx = document.getElementById('chart-topdays').getContext('2d');
 
         const gradient = ctx.createLinearGradient(0, 0, 400, 0);
-        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.3)');
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.8)');
+        gradient.addColorStop(0, 'rgba(255, 181, 196, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 181, 196, 0.8)');
 
         charts.topdays = new Chart(ctx, {
             type: 'bar',
@@ -730,7 +730,7 @@ async function loadTopDaysChart(tableName) {
                     label: 'Revenue ($)',
                     data: data.values || [],
                     backgroundColor: gradient,
-                    borderColor: '#A855F7',
+                    borderColor: '#ffb5c4',
                     borderWidth: 1,
                     borderRadius: 4,
                     barThickness: 18,
@@ -777,8 +777,8 @@ async function loadMonthlyChart(tableName) {
         const datasets = [{
             label: 'Revenue',
             data: data.revenue || [],
-            backgroundColor: 'rgba(168, 85, 247, 0.6)',
-            borderColor: '#A855F7',
+            backgroundColor: 'rgba(255, 181, 196, 0.6)',
+            borderColor: '#ffb5c4',
             borderWidth: 1,
             borderRadius: 4,
         }];
@@ -787,8 +787,8 @@ async function loadMonthlyChart(tableName) {
             datasets.push({
                 label: 'Clicks',
                 data: data.clicks,
-                backgroundColor: 'rgba(56, 189, 248, 0.5)',
-                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(173, 205, 202, 0.5)',
+                borderColor: '#adcdca',
                 borderWidth: 1,
                 borderRadius: 4,
             });
@@ -837,7 +837,7 @@ async function loadSummary(tableName) {
         // Top campaigns table
         if (data.top_days && data.top_days.length > 0) {
             const body = document.getElementById('top-campaigns-body');
-            const colors = ['#fbbf24', '#A855F7', '#22C55E', '#38bdf8', '#f472b6'];
+            const colors = ['#ffb5c4', '#adcdca', '#2f4c4a', '#cac9c6', '#ffd9df'];
             const rankClasses = ['gold', 'silver', 'bronze', 'normal', 'normal'];
             body.innerHTML = data.top_days.map((d, i) => `
                 <div class="campaign-row">
@@ -1049,33 +1049,18 @@ async function uploadFile(file) {
         if (data.status === 'complete' && data.result) {
             const result = data.result;
             document.getElementById('upload-status').textContent = 'Complete!';
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'upload-result success';
-
-            // Show validation warnings if present
-            const validation = result.etl_report?.validation;
-            let warningHtml = '';
-            if (validation && validation.warnings && validation.warnings.length > 0) {
-                warningHtml = '<br><small style="color: var(--warning, #fbbf24);">' +
-                    validation.warnings.map(w => `&#9888; ${w}`).join('<br>') +
-                    '</small>';
-            }
-
-            resultDiv.innerHTML = `
-                <strong>\u2705 ${result.message}</strong><br>
-                <small>Table: <code>${result.table_name}</code> \u2022 Columns: ${result.columns.join(', ')}</small>
-                ${warningHtml}
-            `;
 
             showToast(`Loaded ${result.rows_loaded.toLocaleString()} rows into "${result.table_name}"`, 'success');
 
+            // Auto-close modal and open dashboard after a brief delay
             setTimeout(async () => {
+                closeUploadModal();
                 await loadTables(true);
                 const select = document.getElementById('table-select');
                 select.value = result.table_name;
                 loadDashboard(result.table_name);
                 loadHistory();
-            }, 500);
+            }, 800);
         } else {
             throw new Error(data.error || data.message || 'ETL processing failed');
         }
@@ -1323,26 +1308,26 @@ async function loadROASChart(tableName) {
         const ctx = document.getElementById('chart-roas').getContext('2d');
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 360);
-        gradient.addColorStop(0, 'rgba(34, 197, 94, 0.3)');
-        gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+        gradient.addColorStop(0, 'rgba(173, 205, 202, 0.3)');
+        gradient.addColorStop(1, 'rgba(173, 205, 202, 0.0)');
 
         const datasets = [{
             label: 'ROAS',
             data: data.roas,
-            borderColor: '#22C55E',
+            borderColor: '#adcdca',
             backgroundColor: gradient,
             borderWidth: 2.5,
             fill: true,
             tension: 0.4,
             pointRadius: 3,
-            pointBackgroundColor: '#22C55E',
+            pointBackgroundColor: '#adcdca',
         }];
 
         if (data.roas_ma3 && data.roas_ma3.length > 0) {
             datasets.push({
                 label: '3-Day MA',
                 data: data.roas_ma3,
-                borderColor: '#fbbf24',
+                borderColor: '#ffb5c4',
                 borderWidth: 2,
                 borderDash: [6, 3],
                 fill: false,
@@ -1376,7 +1361,7 @@ async function loadChannelChart(tableName) {
         if (charts.channel) charts.channel.destroy();
         const ctx = document.getElementById('chart-channel').getContext('2d');
 
-        const colors = ['#A855F7', '#f472b6', '#22C55E', '#fbbf24', '#38bdf8', '#94a3b8'];
+        const colors = ['#ffb5c4', '#adcdca', '#2f4c4a', '#cac9c6', '#ffd9df', '#d6c1c4'];
 
         charts.channel = new Chart(ctx, {
             type: 'doughnut',
@@ -1416,8 +1401,8 @@ async function loadEngagementChart(tableName) {
         const ctx = document.getElementById('chart-engagement').getContext('2d');
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.8)');
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.15)');
+        gradient.addColorStop(0, 'rgba(255, 181, 196, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 181, 196, 0.15)');
 
         charts.engagement = new Chart(ctx, {
             type: 'bar',
@@ -1427,7 +1412,7 @@ async function loadEngagementChart(tableName) {
                     label: 'Engagement Score',
                     data: data.values,
                     backgroundColor: gradient,
-                    borderColor: '#A855F7',
+                    borderColor: '#ffb5c4',
                     borderWidth: 1,
                     borderRadius: 6,
                 }]
@@ -1450,7 +1435,7 @@ async function loadEfficiencyChart(tableName) {
         if (charts.efficiency) charts.efficiency.destroy();
         const ctx = document.getElementById('chart-efficiency').getContext('2d');
 
-        const tierColors = ['#f87171', '#fbbf24', '#818cf8', '#22C55E'];
+        const tierColors = ['#ffb4ab', '#cac9c6', '#adcdca', '#2f4c4a'];
 
         charts.efficiency = new Chart(ctx, {
             type: 'bar',
@@ -1489,8 +1474,8 @@ async function loadProfitChart(tableName) {
         const ctx = document.getElementById('chart-profit').getContext('2d');
 
         // Color bars: green if positive, red if negative
-        const barColors = data.values.map(v => v >= 0 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(248, 113, 113, 0.7)');
-        const borderColors = data.values.map(v => v >= 0 ? '#22C55E' : '#f87171');
+        const barColors = data.values.map(v => v >= 0 ? 'rgba(173, 205, 202, 0.7)' : 'rgba(255, 180, 171, 0.7)');
+        const borderColors = data.values.map(v => v >= 0 ? '#adcdca' : '#ffb4ab');
 
         charts.profit = new Chart(ctx, {
             type: 'bar',

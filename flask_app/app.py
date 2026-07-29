@@ -327,20 +327,28 @@ def health():
 def list_tables():
     try:
         engine = get_engine()
+        user_id = session.get("user_id")
+
+        # If the user is logged in, only show tables they uploaded
+        if user_id:
+            with engine.connect() as conn:
+                rows = conn.execute(
+                    text("SELECT DISTINCT table_name FROM user_uploads WHERE user_id = :uid ORDER BY table_name"),
+                    {"uid": user_id}
+                ).fetchall()
+            user_table_names = [r[0] for r in rows]
+        else:
+            user_table_names = []
+
+        # Validate that these tables actually exist in the database
         inspector = inspect(engine)
-        all_tables = inspector.get_table_names()
-        # Filter out: Airflow internals, raw tables, and archived versions (_v{timestamp})
-        etl_tables = [
-            t for t in all_tables
-            if t not in AIRFLOW_TABLES
-            and not t.endswith('_raw')
-            and '_v20' not in t  # Exclude archived versions like table_v20260414_013100
-        ]
+        existing_tables = set(inspector.get_table_names())
+        etl_tables = [t for t in user_table_names if t in existing_tables]
 
         table_info = []
         for t in etl_tables:
             try:
-                df = pd.read_sql(f"SELECT count(*) as cnt FROM {t}", engine)
+                df = pd.read_sql(f'SELECT count(*) as cnt FROM "{t}"', engine)
                 row_count = int(df["cnt"].iloc[0])
             except Exception:
                 row_count = 0
