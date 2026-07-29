@@ -80,6 +80,31 @@ def get_engine():
     return get_streamlit_engine()
 
 
+# ─────────────────────────────────────────
+# In-memory DataFrame cache (per table, 5-min TTL)
+# Avoids re-fetching full tables from Supabase on every chart request
+# ─────────────────────────────────────────
+import time as _time
+_df_cache: dict = {}
+_DF_CACHE_TTL = 300  # seconds
+
+
+def get_cached_df(table_name: str, engine) -> "pd.DataFrame":
+    """Return a cached DataFrame for table_name, refreshing if stale."""
+    now = _time.time()
+    entry = _df_cache.get(table_name)
+    if entry and (now - entry["ts"]) < _DF_CACHE_TTL:
+        return entry["df"]
+    df = pd.read_sql(f'SELECT * FROM "{table_name}"', engine)
+    _df_cache[table_name] = {"df": df, "ts": now}
+    return df
+
+
+def invalidate_cache(table_name: str):
+    """Call after ETL completes to force fresh data on next request."""
+    _df_cache.pop(table_name, None)
+
+
 def validate_table_name(table_name, engine=None):
     """Validate that table_name exists in the database. Prevents SQL injection via table names."""
     if engine is None:
@@ -404,7 +429,7 @@ def get_data(table_name):
         if table_name not in inspector.get_table_names():
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
 
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         return jsonify({
             "columns": list(df.columns),
             "data": df.to_dict(orient="records"),
@@ -420,7 +445,7 @@ def get_stats(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
 
         stats = {
@@ -489,7 +514,7 @@ def get_chart_data(table_name, chart_type):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
 
         rev_col = roles.get("revenue")
@@ -612,7 +637,7 @@ def get_advanced_stats(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         adv = {"has_advanced": False}
 
@@ -657,7 +682,7 @@ def chart_roas_trend(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
         date_col = roles.get("date")
 
@@ -686,7 +711,7 @@ def chart_channel_revenue(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         if "channel" not in df.columns or "revenue" not in df.columns:
             return jsonify({"labels": [], "values": []})
@@ -707,7 +732,7 @@ def chart_engagement(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         if "engagement_score" not in df.columns:
             return jsonify({"labels": [], "values": []})
@@ -730,7 +755,7 @@ def chart_spend_efficiency(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         if "spend_efficiency_tier" not in df.columns:
             return jsonify({"labels": [], "values": []})
@@ -752,7 +777,7 @@ def chart_profit_margin(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
         date_col = roles.get("date")
 
@@ -776,7 +801,7 @@ def chart_anomalies(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         flag_cols = [c for c in ["is_suspicious_traffic", "is_ctr_anomaly", "is_outlier"] if c in df.columns]
         if not flag_cols:
@@ -809,7 +834,7 @@ def chart_cumulative_revenue(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": "Table not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
         date_col = roles.get("date")
 
@@ -833,7 +858,7 @@ def get_summary_stats(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         roles = detect_column_roles(df)
 
         rev_col = roles.get("revenue")
@@ -924,6 +949,9 @@ def run_etl_background(job_id, file_path, table_name, fill_strategy, user_id=Non
                     conn.commit()
             except Exception:
                 pass  # Non-critical
+
+        # Bust cache so dashboard sees fresh data immediately
+        invalidate_cache(cleaned_table_name)
 
         job["progress"] = 100
         job["status"] = "complete"
@@ -1065,7 +1093,7 @@ def download_csv(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
         csv_data = df.to_csv(index=False)
         from flask import Response
         return Response(
@@ -1130,7 +1158,7 @@ def get_ai_insights(table_name):
         engine = get_engine()
         if not validate_table_name(table_name, engine):
             return jsonify({"error": f"Table '{table_name}' not found"}), 404
-        df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+        df = get_cached_df(table_name, engine)
 
         if len(df) == 0:
             return jsonify({"error": "No data in table"}), 404

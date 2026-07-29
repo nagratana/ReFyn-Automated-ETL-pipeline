@@ -629,15 +629,9 @@ def clean_marketing_data(
                 raw_df = pd.read_csv(input_path, encoding="ISO-8859-1")
     raw_df.columns = raw_df.columns.str.strip().str.lower().str.replace(" ", "_", regex=False)
 
-    raw_df.to_sql(
-        name=raw_table_name,
-        con=engine,
-        if_exists="replace",
-        index=False,
-        method="multi",
-        chunksize=1000,
-    )
-    print(f"   Saved {len(raw_df)} raw rows to '{raw_table_name}'")
+    # Skip writing raw data table to DB — saves ~50% upload time.
+    # Raw file is retained on disk at file_path if needed.
+    print(f"   Skipping raw table write (performance optimization). Raw file kept at: {input_path}")
 
     # Save CLEANED data
     cleaned_table_name = f"{table_name}_cleaned"
@@ -653,7 +647,7 @@ def clean_marketing_data(
         if_exists="replace",
         index=False,
         method="multi",
-        chunksize=1000,
+        chunksize=2000,  # larger chunks = fewer roundtrips to Supabase
     )
 
     print(f"[OK] Loaded {rows_before} cleaned rows to PostgreSQL table '{cleaned_table_name}'")
