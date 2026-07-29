@@ -136,23 +136,34 @@ async function loadTables(skipAutoSelect = false) {
 }
 
 function showEmptyState() {
-    document.getElementById('empty-state').style.display = 'block';
-    document.querySelector('.kpi-grid').style.display = 'none';
-    document.querySelector('.charts-grid').style.display = 'none';
-    document.querySelector('.table-card').style.display = 'none';
+    const emptyState = document.getElementById('empty-state');
+    const kpiGrid = document.querySelector('.kpi-grid');
+    const chartsGrid = document.querySelector('.charts-grid');
+    const tableCard = document.querySelector('.table-card');
+    if (emptyState) emptyState.style.display = 'block';
+    if (kpiGrid) kpiGrid.style.display = 'none';
+    if (chartsGrid) chartsGrid.style.display = 'none';
+    if (tableCard) tableCard.style.display = 'none';
 }
 
 function showDashboard() {
-    document.getElementById('empty-state').style.display = 'none';
-    document.querySelector('.kpi-grid').style.display = 'grid';
+    const emptyState = document.getElementById('empty-state');
+    const kpiGrid = document.querySelector('.kpi-grid');
+    const tableCard = document.querySelector('.table-card');
+    const aiCard = document.getElementById('ai-insights-card');
+    const historyCard = document.getElementById('history-card');
+    const perfSummary = document.getElementById('perf-summary');
+    const topCampaigns = document.getElementById('top-campaigns-card');
+
+    if (emptyState) emptyState.style.display = 'none';
+    if (kpiGrid) kpiGrid.style.display = 'grid';
     const chartsEl = document.querySelector('.charts-grid-expanded') || document.querySelector('.charts-grid');
     if (chartsEl) chartsEl.style.display = 'grid';
-    document.querySelector('.table-card').style.display = 'block';
-    document.getElementById('ai-insights-card').style.display = 'block';
-    document.getElementById('history-card').style.display = 'block';
-    document.getElementById('perf-summary').style.display = 'grid';
-    document.getElementById('top-campaigns-card').style.display = 'block';
-    // Advanced sections will be toggled by loadAdvancedStats based on data availability
+    if (tableCard) tableCard.style.display = 'block';
+    if (aiCard) aiCard.style.display = 'block';
+    if (historyCard) historyCard.style.display = 'block';
+    if (perfSummary) perfSummary.style.display = 'grid';
+    if (topCampaigns) topCampaigns.style.display = 'block';
 }
 
 /* ═══════ Load Dashboard ═══════ */

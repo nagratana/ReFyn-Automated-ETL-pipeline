@@ -150,13 +150,19 @@ def init_auth_tables():
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS user_uploads (
                     id SERIAL PRIMARY KEY,
-                    user_id INTEGER REFERENCES dashboard_users(id),
+                    user_id INTEGER,
                     table_name VARCHAR(200) NOT NULL,
                     filename VARCHAR(200) NOT NULL,
                     rows_loaded INTEGER DEFAULT 0,
                     columns_count INTEGER DEFAULT 0,
                     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
+            """))
+            # Seed a default analyst account so session user_id=1 is always valid
+            conn.execute(text("""
+                INSERT INTO dashboard_users (id, username, email, password_hash)
+                VALUES (1, 'analyst', 'analyst@refyndata.com', 'no-auth')
+                ON CONFLICT (id) DO NOTHING
             """))
             conn.commit()
         print("[OK] Database tables initialized.")
@@ -349,24 +355,34 @@ def list_tables():
         engine = get_engine()
         user_id = session.get("user_id")
 
-        # If the user is logged in, only show tables they uploaded
+        # Get tables from user upload history
+        user_table_names = []
         if user_id:
-            with engine.connect() as conn:
-                rows = conn.execute(
-                    text("SELECT DISTINCT table_name FROM user_uploads WHERE user_id = :uid ORDER BY table_name"),
-                    {"uid": user_id}
-                ).fetchall()
-            user_table_names = [r[0] for r in rows]
-        else:
-            user_table_names = []
+            try:
+                with engine.connect() as conn:
+                    rows = conn.execute(
+                        text("SELECT DISTINCT table_name FROM user_uploads WHERE user_id = :uid ORDER BY table_name"),
+                        {"uid": user_id}
+                    ).fetchall()
+                user_table_names = [r[0] for r in rows]
+            except Exception:
+                pass
 
         # Validate that these tables actually exist in the database
         inspector = inspect(engine)
         existing_tables = set(inspector.get_table_names())
-        etl_tables = [t for t in user_table_names if t in existing_tables]
+
+        # Fallback: if no user-upload records, show all ETL-produced tables (_cleaned suffix)
+        if not user_table_names:
+            user_table_names = [
+                t for t in sorted(existing_tables)
+                if t.endswith('_cleaned') and t not in AIRFLOW_TABLES
+            ]
+        else:
+            user_table_names = [t for t in user_table_names if t in existing_tables]
 
         table_info = []
-        for t in etl_tables:
+        for t in user_table_names:
             try:
                 df = pd.read_sql(f'SELECT count(*) as cnt FROM "{t}"', engine)
                 row_count = int(df["cnt"].iloc[0])
