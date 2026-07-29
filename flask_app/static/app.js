@@ -115,7 +115,8 @@ async function loadTables(skipAutoSelect = false) {
             data.tables.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t.name;
-                opt.textContent = `${t.name} (${t.rows.toLocaleString()} rows)`;
+                const displayName = t.name.replace(/^_s_[a-f0-9]{8}_/, '');
+                opt.textContent = `${displayName} (${t.rows.toLocaleString()} rows)`;
                 select.appendChild(opt);
             });
 

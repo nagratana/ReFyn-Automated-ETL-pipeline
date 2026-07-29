@@ -106,10 +106,16 @@ def invalidate_cache(table_name: str):
 
 
 def validate_table_name(table_name, engine=None):
-    """Validate that table_name exists in the database. Prevents SQL injection via table names."""
+    """Validate that table_name exists in the database and belongs to current session if prefixed."""
     if engine is None:
         engine = get_engine()
-    return table_name in inspect(engine).get_table_names()
+    if table_name not in inspect(engine).get_table_names():
+        return False
+    if table_name.startswith("_s_"):
+        session_key = session.get("session_key", "")
+        if not table_name.startswith(f"_s_{session_key}_"):
+            return False
+    return True
 
 
 def detect_column_roles(df):
@@ -360,7 +366,39 @@ def dashboard():
         session["user_id"] = 1
         session["username"] = "Data Analyst"
         session["email"] = "analyst@refyndata.com"
+
+    # Assign a unique session key for this visitor if they don't have one.
+    # Each visitor's uploaded tables are prefixed with this key.
+    if "session_key" not in session:
+        session["session_key"] = str(uuid.uuid4())[:8]
+        # New visitor — clean up ALL previous session tables from Supabase.
+        # This ensures no visitor ever sees another's uploaded data.
+        _purge_all_session_tables()
+
     return render_template("index.html")
+
+
+def _purge_all_session_tables():
+    """Drop all session-scoped data tables (_s_*_cleaned) from the database.
+    Called when a new visitor arrives to ensure a clean slate."""
+    try:
+        engine = get_engine()
+        inspector = inspect(engine)
+        all_tables = inspector.get_table_names()
+        # Session tables are prefixed '_s_<key>_'
+        session_tables = [
+            t for t in all_tables
+            if t.startswith('_s_') and t.endswith('_cleaned')
+        ]
+        if session_tables:
+            with engine.connect() as conn:
+                for t in session_tables:
+                    conn.execute(text(f'DROP TABLE IF EXISTS "{t}" CASCADE'))
+                    invalidate_cache(t)
+                conn.commit()
+            print(f"[PRIVACY] Purged {len(session_tables)} session tables on new visitor.")
+    except Exception as e:
+        print(f"[PRIVACY] Could not purge session tables: {e}")
 
 
 @app.route("/api/health")
@@ -378,39 +416,23 @@ def health():
 def list_tables():
     try:
         engine = get_engine()
-        user_id = session.get("user_id")
+        session_key = session.get("session_key", "")
 
-        # Get tables from user upload history
-        user_table_names = []
-        if user_id:
-            try:
-                with engine.connect() as conn:
-                    rows = conn.execute(
-                        text("SELECT DISTINCT table_name FROM user_uploads WHERE user_id = :uid ORDER BY table_name"),
-                        {"uid": user_id}
-                    ).fetchall()
-                user_table_names = [r[0] for r in rows]
-            except Exception:
-                pass
-
-        # Validate that these tables actually exist in the database
         inspector = inspect(engine)
         existing_tables = set(inspector.get_table_names())
 
-        # Fallback: if no user-upload records, show all ETL-produced tables (_cleaned suffix)
-        if not user_table_names:
-            user_table_names = [
-                t for t in sorted(existing_tables)
-                if t.endswith('_cleaned') and t not in AIRFLOW_TABLES
-            ]
-        else:
-            user_table_names = [t for t in user_table_names if t in existing_tables]
+        # Only show tables belonging to this visitor's session (prefixed _s_<key>_)
+        session_prefix = f"_s_{session_key}_"
+        session_tables = [
+            t for t in sorted(existing_tables)
+            if t.startswith(session_prefix) and t.endswith('_cleaned')
+        ]
 
         table_info = []
-        for t in user_table_names:
+        for t in session_tables:
             try:
-                df = pd.read_sql(f'SELECT count(*) as cnt FROM "{t}"', engine)
-                row_count = int(df["cnt"].iloc[0])
+                with engine.connect() as conn:
+                    row_count = conn.execute(text(f'SELECT COUNT(*) FROM "{t}"')).scalar()
             except Exception:
                 row_count = 0
             table_info.append({"name": t, "rows": row_count})
@@ -991,8 +1013,14 @@ def upload_csv():
         file_path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(file_path)
 
-        # Derive table name
-        table_name = sanitize_table_name(file.filename)
+        # Derive table name with session prefix for privacy isolation
+        session_key = session.get("session_key")
+        if not session_key:
+            session_key = str(uuid.uuid4())[:8]
+            session["session_key"] = session_key
+
+        base_name = sanitize_table_name(file.filename)
+        table_name = f"_s_{session_key}_{base_name}"
 
         # Get fill strategy from form (default: zero)
         fill_strategy = request.form.get("fill_strategy", "zero").strip().lower()
